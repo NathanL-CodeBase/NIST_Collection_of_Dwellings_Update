@@ -1,7 +1,12 @@
-#%%
-#NOTE: the files have moved and the file location will needed to be updated if you are running this code.
-
-#%%
+"""
+Purpose: Updated poster-ready interactive Bokeh visualization of NIST Collection of
+         Dwellings citation and usage data, with ASHRAE-themed color palette and
+         dual-axis charts grouped by research category and year.
+Author: Nathan Lima
+Created: 2025-09-15
+"""
+import json
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from bokeh.plotting import figure, show, output_file
@@ -10,8 +15,22 @@ from bokeh.layouts import column, row
 from bokeh.transform import cumsum
 import math
 
+_config_path = Path(__file__).resolve().parent.parent / "data_config.json"
+if not _config_path.exists():
+    raise FileNotFoundError(
+        f"data_config.json not found at {_config_path}. "
+        "Copy data_config.template.json to data_config.json and update the paths."
+    )
+with open(_config_path) as f:
+    _cfg = json.load(f)
+
+DATA_DIR = Path(_cfg["data_dir"])
+RESULTS_DIR = Path(_cfg["results_dir"])
+FIGURES_DIR = RESULTS_DIR / "figures"
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+
 # Read the Excel file
-df = pd.read_excel('a_collection_of_homes_to_represent_the_us_housing_stock.xlsx')
+df = pd.read_excel(DATA_DIR / "a_collection_of_homes_to_represent_the_us_housing_stock.xlsx")
 
 # Clean the data (no need to add 2025 reference since that's this project)
 df['Year'] = df['Year'].fillna(0).astype(int)
@@ -31,7 +50,7 @@ print(f"Total publications analyzed: {len(df)}")
 print(f"Year range: {df['Year'].min()} - {df['Year'].max()}")
 
 # Create output HTML file
-output_file("nist_housing_stock_impact.html")
+output_file(str(FIGURES_DIR / "nist_housing_stock_impact.html"))
 
 # ASHRAE-themed color palettes - poster ready
 ashrae_colors_main = ['#1f4e79', '#2e75b6', '#5b9bd5', '#8db4e2', '#c5d9f1', '#ddeaf6']

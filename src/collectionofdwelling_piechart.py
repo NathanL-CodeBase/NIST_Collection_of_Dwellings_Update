@@ -1,4 +1,10 @@
-#%%
+"""
+Purpose: Generates a multi-layer donut chart visualizing the NIST Collection of Dwellings
+         citation and usage breakdown by research category (Ventilation/IAQ, Energy,
+         Fire/Other) and publication type.
+Author: Nathan Lima
+Created: 2024-08-29
+"""
 import numpy as np
 from math import pi, cos, sin
 from bokeh.plotting import figure, show

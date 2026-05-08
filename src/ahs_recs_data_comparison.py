@@ -1,18 +1,35 @@
-# -*- coding: utf-8 -*-
-#%% import needed modules 
-import os
+"""
+Purpose: Cross-survey comparison of AHS (1997, 2021) and RECS (1997, 2020) data.
+         Produces per-dwelling-type characteristic distributions and exports results
+         to Excel files for historical comparison.
+Author: Nathan Lima
+Created: 2023-05-03
+"""
+import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 
-#%% set path, directory, and load datasets
-absolute_path = 'C:/Users/nml/OneDrive - NIST/Documents/NIST/suit_of_homes_research/'
-os.chdir(absolute_path)
+_config_path = Path(__file__).resolve().parent.parent / "data_config.json"
+if not _config_path.exists():
+    raise FileNotFoundError(
+        f"data_config.json not found at {_config_path}. "
+        "Copy data_config.template.json to data_config.json and update the paths."
+    )
+with open(_config_path) as f:
+    _cfg = json.load(f)
 
-recs_1997 = pd.read_csv("./recs_data/1997/1997_recs_data.csv")
-recs_2020 = pd.read_csv("./recs_data/2020/recs2020_public_v2.csv")
+DATA_DIR = Path(_cfg["data_dir"])
+RESULTS_DIR = Path(_cfg["results_dir"])
+OUTPUT_DATA_DIR = RESULTS_DIR / "output_data"
+OUTPUT_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-ahs_1997 = pd.read_csv("./ahs_data/1997/household.csv")
-ahs_2021 = pd.read_csv("./ahs_data/2021/household.csv")
+# Load all four survey datasets
+recs_1997 = pd.read_csv(DATA_DIR / "recs_data" / "1997" / "1997_recs_data.csv")
+recs_2020 = pd.read_csv(DATA_DIR / "recs_data" / "2020" / "recs2020_public_v2.csv")
+
+ahs_1997 = pd.read_csv(DATA_DIR / "ahs_data" / "1997" / "household.csv")
+ahs_2021 = pd.read_csv(DATA_DIR / "ahs_data" / "2021" / "household.csv")
 
 #%% Column heading, Table 1, & Table 2 notes
 """ recs 1997
@@ -736,7 +753,7 @@ ahs_1997_mobile1 = ahs_1997[ahs_1997.NUNIT2 == "'4'"]
 ahs_1997_mobile2 = ahs_1997[ahs_1997.NUNIT2 == "'5'"]
 ahs_1997_mobile = pd.concat([ahs_1997_mobile1, ahs_1997_mobile2], ignore_index=True)
 
-with pd.ExcelWriter('update_ahs_1997.xlsx') as writer:  
+with pd.ExcelWriter(OUTPUT_DATA_DIR / 'update_ahs_1997.xlsx') as writer:
     ahs_1997_detached.to_excel(writer, sheet_name='detached')
     ahs_1997_attached.to_excel(writer, sheet_name='attached')
     ahs_1997_apartment.to_excel(writer, sheet_name='apartment')
@@ -755,7 +772,7 @@ ahs_2021_apt5 = ahs_2021[ahs_2021.BLD == "'08'"]
 ahs_2021_apt6 = ahs_2021[ahs_2021.BLD == "'09'"]
 ahs_2021_apartment = pd.concat([ahs_2021_apt1, ahs_2021_apt2, ahs_2021_apt3, ahs_2021_apt4, ahs_2021_apt5, ahs_2021_apt6], ignore_index=True)
 
-with pd.ExcelWriter('update_ahs_2021.xlsx') as writer:  
+with pd.ExcelWriter(OUTPUT_DATA_DIR / 'update_ahs_2021.xlsx') as writer:
     ahs_2021_detached.to_excel(writer, sheet_name='detached')
     ahs_2021_attached.to_excel(writer, sheet_name='attached')
     ahs_2021_apartment.to_excel(writer, sheet_name='apartment')
@@ -771,7 +788,7 @@ recs_1997_apt1 = recs_1997[recs_1997.TYPEHUQ == 4]
 recs_1997_apt2 = recs_1997[recs_1997.TYPEHUQ == 5]
 recs_1997_apartment = pd.concat([recs_1997_apt1, recs_1997_apt2], ignore_index=True)
 
-with pd.ExcelWriter('update_recs_1997.xlsx') as writer:  
+with pd.ExcelWriter(OUTPUT_DATA_DIR / 'update_recs_1997.xlsx') as writer:
     recs_1997_detached.to_excel(writer, sheet_name='detached')
     recs_1997_attached.to_excel(writer, sheet_name='attached')
     recs_1997_apartment.to_excel(writer, sheet_name='apartment')
@@ -786,7 +803,7 @@ recs_2020_apt1 = recs_2020[recs_2020.TYPEHUQ == 4]
 recs_2020_apt2 = recs_2020[recs_2020.TYPEHUQ == 5]
 recs_2020_apartment = pd.concat([recs_2020_apt1, recs_2020_apt2], ignore_index=True)
 
-with pd.ExcelWriter('update_recs_2020.xlsx') as writer:  
+with pd.ExcelWriter(OUTPUT_DATA_DIR / 'update_recs_2020.xlsx') as writer:
     recs_2020_detached.to_excel(writer, sheet_name='detached')
     recs_2020_attached.to_excel(writer, sheet_name='attached')
     recs_2020_apartment.to_excel(writer, sheet_name='apartment')

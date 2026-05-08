@@ -1,8 +1,12 @@
-# -*- coding: utf-8 -*-
-#%% RUN 
-# import needed modules
-print('Importing needed modules')
-import os
+"""
+Purpose: Analyzes manufactured housing representation in RECS 2020 or AHS 2021 survey data.
+         Exports dwelling characteristic distributions (apartment, attached, detached,
+         mobile home) to Excel and CSV for use by ahs21_weighted_average.py.
+Author: Nathan Lima
+Created: 2023-12-11
+"""
+import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from bokeh.plotting import figure, output_file, show
@@ -10,23 +14,33 @@ from bokeh.models.tools import HoverTool, CrosshairTool, Span
 from bokeh.layouts import gridplot
 from bokeh.models import CrosshairTool, Span
 
-#%% RUN User defines directory path for datset, dataset used, and dataset final location
-# User set absolute_path
-absolute_path = 'C:/Users/nml/OneDrive - NIST/Documents/NIST/suit_of_homes_research/' #USER ENTERED PROJECT PATH
-os.chdir(absolute_path)
+_config_path = Path(__file__).resolve().parent.parent / "data_config.json"
+if not _config_path.exists():
+    raise FileNotFoundError(
+        f"data_config.json not found at {_config_path}. "
+        "Copy data_config.template.json to data_config.json and update the paths."
+    )
+with open(_config_path) as f:
+    _cfg = json.load(f)
+
+DATA_DIR = Path(_cfg["data_dir"])
+RESULTS_DIR = Path(_cfg["results_dir"])
+OUTPUT_DATA_DIR = RESULTS_DIR / "output_data"
+FIGURES_DIR = RESULTS_DIR / "figures"
+OUTPUT_DATA_DIR.mkdir(parents=True, exist_ok=True)
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 # use only one dataset at a time
-dataset = 'recs20' #USER ENTERED select 'recs20' or 'ahs21'
-print('dataset selected: '+dataset)
+dataset = 'recs20'  # select 'recs20' or 'ahs21'
+print('dataset selected: ' + dataset)
 
-# Set up Datasets that are used
-print(dataset + ' dataset selected and final file path defined')
+# Set up datasets
+print(dataset + ' dataset selected and path defined')
 if dataset == 'recs20':
-    #df = pd.read_csv("./recs_data/2020/recs2020_public_v2.csv") #USER ENTERED FINAL PATH FOR RECS
-    df = pd.read_csv("./recs_data/2020/RECS2020_NIST.csv") #USER ENTERED FINAL PATH FOR RECS
+    df = pd.read_csv(DATA_DIR / "recs_data" / "2020" / "RECS2020_NIST.csv")
     df.rename(columns = {'state_postal':'state', 'NWEIGHT':'weight', 'BEDROOMS':'#_of_bedrooms', 'NCOMBATH':'#_of_bathrooms', 'NHAFBATH':'#_of_halfbathrooms', 'OTHROOMS':'#_of_otherrooms', 'WINDOWS':'#_of_windows', 'SQFTRANGE':'sqft'}, inplace = True)
 elif dataset == 'ahs21':
-    df = pd.read_csv("./ahs_data/2021/household.csv") #USER ENTERED FINAL PATH FOR AHS
+    df = pd.read_csv(DATA_DIR / "ahs_data" / "2021" / "household.csv")
     df.replace('\'','',regex=True,inplace=True)
     df.drop(df.index[df['BLD']=='10'],inplace=True) #remove boat_rv_etc
     df.drop(df.index[df['UNITSIZE']=='-9'],inplace=True) #remove all units without a sqft size 
@@ -562,7 +576,7 @@ mobile_home_air_conditioning_characteristic.sort_values(by='air_conditioning_var
 #%% RUN to Write home characteristics excel files
 # Write all home characteristics datasets to excel files
 print('Write apartment characteristics datasets to excel file')
-with pd.ExcelWriter(dataset+"_apartment_characteristics.xlsx") as writer:
+with pd.ExcelWriter(OUTPUT_DATA_DIR / f"{dataset}_apartment_characteristics.xlsx") as writer:
     # use to_excel function and specify the sheet_name and index
     # to store the dataframe in specified sheet
     apartment_characteristic.to_excel(writer, sheet_name="apartment_characteristic", index=True)
@@ -573,7 +587,7 @@ with pd.ExcelWriter(dataset+"_apartment_characteristics.xlsx") as writer:
     apartment_air_conditioning_characteristic.to_excel(writer, sheet_name="air_conditioning", index=True)
 
 print('Write attached home characteristics datasets to excel file')
-with pd.ExcelWriter(dataset+"_attached_characteristics.xlsx") as writer:
+with pd.ExcelWriter(OUTPUT_DATA_DIR / f"{dataset}_attached_characteristics.xlsx") as writer:
     # use to_excel function and specify the sheet_name and index
     # to store the dataframe in specified sheet
     attached_characteristic.to_excel(writer, sheet_name="attached_characteristic", index=True)
@@ -584,7 +598,7 @@ with pd.ExcelWriter(dataset+"_attached_characteristics.xlsx") as writer:
     attached_air_conditioning_characteristic.to_excel(writer, sheet_name="air_conditioning", index=True)
 
 print('Write detached home characteristics datasets to excel file')
-with pd.ExcelWriter(dataset+"_detached_characteristics.xlsx") as writer:
+with pd.ExcelWriter(OUTPUT_DATA_DIR / f"{dataset}_detached_characteristics.xlsx") as writer:
     # use to_excel function and specify the sheet_name and index
     # to store the dataframe in specified sheet
     detached_characteristic.to_excel(writer, sheet_name="detached_characteristic", index=True)
@@ -595,7 +609,7 @@ with pd.ExcelWriter(dataset+"_detached_characteristics.xlsx") as writer:
     detached_air_conditioning_characteristic.to_excel(writer, sheet_name="air_conditioning", index=True)
 
 print('Write mobile home characteristics datasets to excel file')
-with pd.ExcelWriter(dataset+"_mobile_home_characteristics.xlsx") as writer:
+with pd.ExcelWriter(OUTPUT_DATA_DIR / f"{dataset}_mobile_home_characteristics.xlsx") as writer:
     # use to_excel function and specify the sheet_name and index
     # to store the dataframe in specified sheet
     mobile_home_characteristic.to_excel(writer, sheet_name="mobile_home_characteristic", index=True)
@@ -686,10 +700,10 @@ mobile_home_characteristic = mobile_home_characteristic.merge(mobile_home_air_co
 
 #%% RUN to save final home characteristics file to CSV
 # Save final home characteristics file to CSV
-apartment_characteristic.to_csv(dataset + "_apartment_characteristics.csv", index=False)
-attached_characteristic.to_csv(dataset + "_attached_characteristics.csv", index=False)
-detached_characteristic.to_csv(dataset + "_detached_characteristics.csv", index=False)
-mobile_home_characteristic.to_csv(dataset + "_mobile_home_characteristics.csv", index=False)
+apartment_characteristic.to_csv(OUTPUT_DATA_DIR / f"{dataset}_apartment_characteristics.csv", index=False)
+attached_characteristic.to_csv(OUTPUT_DATA_DIR / f"{dataset}_attached_characteristics.csv", index=False)
+detached_characteristic.to_csv(OUTPUT_DATA_DIR / f"{dataset}_detached_characteristics.csv", index=False)
+mobile_home_characteristic.to_csv(OUTPUT_DATA_DIR / f"{dataset}_mobile_home_characteristics.csv", index=False)
 
 #%%
 if dataset == 'recs20':
@@ -725,6 +739,6 @@ elif dataset == 'ahs21':
 #%% DO NOT RUN Left over code
 # Not valid since both sqft and home age variables do match the past study.
 # import 1997 definitions
-home_definitions_1997 = pd.read_csv('1997_home_definitions.csv',dtype=np.object_)
+home_definitions_1997 = pd.read_csv(DATA_DIR / "1997_home_definitions.csv", dtype=np.object_)
 
 test = [e for e in apartment['home_definition'].unique() if e not in list(home_definitions_1997['apartment'].unique())]

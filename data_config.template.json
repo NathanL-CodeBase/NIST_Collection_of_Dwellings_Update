@@ -1,5 +1,19 @@
 {
-  "_note": "Copy this file to data_config.json, update the paths for your machine, and do not commit data_config.json.",
-  "data_dir": "C:/Users/YourName/path/to/data",
-  "results_dir": "C:/Users/YourName/path/to/results"
+  "_note": "Copy this file to data_config.json, fill in the paths for your machine, and do not commit data_config.json.",
+  "data_dir": "C:/path/to/data/root",
+  "_data_dir_note": "Root of the survey data directory. Expected subdirectory structure below.",
+  "_data_structure": {
+    "recs_data/1997/1997_recs_data.csv": "RECS 1997 public microdata",
+    "recs_data/2015/recs2015_public_v4.csv": "RECS 2015 public microdata v4",
+    "recs_data/2020/recs2020_public_v1_data.csv": "RECS 2020 public microdata v1",
+    "recs_data/2020/recs2020_public_v2.csv": "RECS 2020 public microdata v2",
+    "recs_data/2020/RECS2020_NIST.csv": "RECS 2020 NIST-filtered dataset",
+    "ahs_data/1997/household.csv": "AHS 1997 household microdata",
+    "ahs_data/2019/household.csv": "AHS 2019 household microdata",
+    "ahs_data/2021/household.csv": "AHS 2021 household microdata",
+    "1997_home_definitions.csv": "1997 home prototype definitions (metadata)",
+    "a_collection_of_homes_to_represent_the_us_housing_stock.xlsx": "NIST collection citation/usage tracking workbook"
+  },
+  "results_dir": "C:/path/to/results",
+  "_results_dir_note": "Root for script outputs. Subdirectories output_data/ and figures/ are created automatically."
 }

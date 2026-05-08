@@ -1,8 +1,11 @@
-# -*- coding: utf-8 -*-
-#%% RUN 
-# import needed modules
-print('Importing needed modules')
-import os
+"""
+Purpose: Computes square-footage-weighted averages of dwelling characteristics from RECS
+         2020 or AHS 2021 survey data and visualizes results using Bokeh.
+Author: Nathan Lima
+Created: 2023-09-15
+"""
+import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from bokeh.plotting import figure, output_file, show
@@ -10,23 +13,33 @@ from bokeh.models.tools import HoverTool, CrosshairTool, Span
 from bokeh.layouts import gridplot
 from bokeh.models import CrosshairTool, Span
 
-#%% RUN User defines directory path for datset, dataset used, and dataset final location
-# User set absolute_path
-absolute_path = 'C:/Users/nml/OneDrive - NIST/Documents/NIST/suit_of_homes_research/' #USER ENTERED PROJECT PATH
-os.chdir(absolute_path)
+_config_path = Path(__file__).resolve().parent.parent / "data_config.json"
+if not _config_path.exists():
+    raise FileNotFoundError(
+        f"data_config.json not found at {_config_path}. "
+        "Copy data_config.template.json to data_config.json and update the paths."
+    )
+with open(_config_path) as f:
+    _cfg = json.load(f)
+
+DATA_DIR = Path(_cfg["data_dir"])
+RESULTS_DIR = Path(_cfg["results_dir"])
+OUTPUT_DATA_DIR = RESULTS_DIR / "output_data"
+FIGURES_DIR = RESULTS_DIR / "figures"
+OUTPUT_DATA_DIR.mkdir(parents=True, exist_ok=True)
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 # use only one dataset at a time
-dataset = 'recs20' #USER ENTERED select 'recs20' or 'ahs21'
-print('dataset selected: '+dataset)
+dataset = 'recs20'  # select 'recs20' or 'ahs21'
+print('dataset selected: ' + dataset)
 
-# Set up Datasets that are used
-print(dataset + ' dataset selected and final file path defined')
+# Set up datasets
+print(dataset + ' dataset selected and path defined')
 if dataset == 'recs20':
-    #df = pd.read_csv("./recs_data/2020/recs2020_public_v2.csv") #USER ENTERED FINAL PATH FOR RECS
-    df = pd.read_csv("./recs_data/2020/RECS2020_NIST.csv") #USER ENTERED FINAL PATH FOR RECS
+    df = pd.read_csv(DATA_DIR / "recs_data" / "2020" / "RECS2020_NIST.csv")
     df.rename(columns = {'NWEIGHT':'weight', 'BEDROOMS':'#_of_bedrooms', 'NCOMBATH':'#_of_bathrooms', 'NHAFBATH':'#_of_halfbathrooms', 'OTHROOMS':'#_of_otherrooms', 'WINDOWS':'#_of_windows', 'SQFTRANGE':'sqft', 'TOTSQFT_EN':'conditioned_sqft'}, inplace = True)
 elif dataset == 'ahs21':
-    df = pd.read_csv("./ahs_data/2021/household.csv") #USER ENTERED FINAL PATH FOR AHS
+    df = pd.read_csv(DATA_DIR / "ahs_data" / "2021" / "household.csv")
     df.replace('\'','',regex=True,inplace=True)
     df.drop(df.index[df['BLD']=='10'],inplace=True) #remove boat_rv_etc
     df.drop(df.index[df['UNITSIZE']=='-9'],inplace=True) #remove all units without a sqft size 

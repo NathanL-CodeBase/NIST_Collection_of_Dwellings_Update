@@ -1,3 +1,11 @@
+"""
+Purpose: Interactive Bokeh visualization of publication history and usage of the NIST
+         Collection of Dwellings Excel dataset, grouped by research category and year.
+Author: Nathan Lima
+Created: 2025-09-12
+"""
+import json
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from bokeh.plotting import figure, show, output_file
@@ -8,8 +16,22 @@ from bokeh.transform import cumsum, factor_cmap
 from bokeh.models import Title
 import math
 
+_config_path = Path(__file__).resolve().parent.parent / "data_config.json"
+if not _config_path.exists():
+    raise FileNotFoundError(
+        f"data_config.json not found at {_config_path}. "
+        "Copy data_config.template.json to data_config.json and update the paths."
+    )
+with open(_config_path) as f:
+    _cfg = json.load(f)
+
+DATA_DIR = Path(_cfg["data_dir"])
+RESULTS_DIR = Path(_cfg["results_dir"])
+FIGURES_DIR = RESULTS_DIR / "figures"
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+
 # Read the Excel file
-df = pd.read_excel('a_collection_of_homes_to_represent_the_us_housing_stock.xlsx')
+df = pd.read_excel(DATA_DIR / "a_collection_of_homes_to_represent_the_us_housing_stock.xlsx")
 
 # Add the 2025 reference manually
 new_row = {
@@ -46,7 +68,7 @@ print(f"Total publications analyzed: {len(df)}")
 print(f"Year range: {df['Year'].min()} - {df['Year'].max()}")
 
 # Create output HTML file
-output_file("nist_housing_stock_impact.html")
+output_file(str(FIGURES_DIR / "nist_housing_stock_impact.html"))
 
 # Color palettes
 colors_type = Category20[8]

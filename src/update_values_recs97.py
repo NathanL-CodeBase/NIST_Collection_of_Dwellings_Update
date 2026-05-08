@@ -1,8 +1,12 @@
-# -*- coding: utf-8 -*-
-#%% RUN 
-# import needed modules
-print('Importing needed modules')
-import os
+"""
+Purpose: Applies 1997 RECS characteristic groupings to RECS 2020 or AHS 2021 survey data
+         and exports dwelling-type CSV tables with 1997-style categorization for
+         historical comparison.
+Author: Nathan Lima
+Created: 2023-09-12
+"""
+import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from bokeh.plotting import figure, output_file, show
@@ -10,28 +14,38 @@ from bokeh.models.tools import HoverTool, CrosshairTool, Span
 from bokeh.layouts import gridplot
 from bokeh.models import CrosshairTool, Span
 
-#%% RUN User defines directory path for datset, dataset used, and dataset final location
-# User set absolute_path
-absolute_path = 'C:/Users/nml/OneDrive - NIST/Documents/NIST/suit_of_homes_research/' #USER ENTERED PROJECT PATH
-os.chdir(absolute_path)
+_config_path = Path(__file__).resolve().parent.parent / "data_config.json"
+if not _config_path.exists():
+    raise FileNotFoundError(
+        f"data_config.json not found at {_config_path}. "
+        "Copy data_config.template.json to data_config.json and update the paths."
+    )
+with open(_config_path) as f:
+    _cfg = json.load(f)
+
+DATA_DIR = Path(_cfg["data_dir"])
+RESULTS_DIR = Path(_cfg["results_dir"])
+OUTPUT_DATA_DIR = RESULTS_DIR / "output_data"
+FIGURES_DIR = RESULTS_DIR / "figures"
+OUTPUT_DATA_DIR.mkdir(parents=True, exist_ok=True)
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 # use only one dataset at a time
-dataset = 'recs20' #USER ENTERED select 'recs20' or 'ahs21'
-print('dataset selected: '+dataset)
+dataset = 'recs20'  # select 'recs20' or 'ahs21'
+print('dataset selected: ' + dataset)
 
-# Set up Datasets that are used
-print(dataset + ' dataset selected and final file path defined')
+# Set up datasets
+print(dataset + ' dataset selected and path defined')
 if dataset == 'recs20':
-    #df = pd.read_csv("./recs_data/2020/recs2020_public_v2.csv") #USER ENTERED FINAL PATH FOR RECS
-    df = pd.read_csv("./recs_data/2020/RECS2020_NIST.csv") #USER ENTERED FINAL PATH FOR RECS
+    df = pd.read_csv(DATA_DIR / "recs_data" / "2020" / "RECS2020_NIST.csv")
     df.rename(columns = {'NWEIGHT':'weight', 'BEDROOMS':'#_of_bedrooms', 'NCOMBATH':'#_of_bathrooms', 'NHAFBATH':'#_of_halfbathrooms', 'OTHROOMS':'#_of_otherrooms', 'WINDOWS':'#_of_windows', 'SQFTRANGE':'sqft'}, inplace = True)
 elif dataset == 'ahs21':
-    df = pd.read_csv("./ahs_data/2021/household.csv") #USER ENTERED FINAL PATH FOR AHS
+    df = pd.read_csv(DATA_DIR / "ahs_data" / "2021" / "household.csv")
     df.replace('\'','',regex=True,inplace=True)
     df.drop(df.index[df['BLD']=='10'],inplace=True) #remove boat_rv_etc
     df.drop(df.index[df['UNITSIZE']=='-9'],inplace=True) #remove all units without a sqft size 
     df=df.copy()
-    df.rename(columns = {'BEDROOMS':'#_of_bedrooms', 'WEIGHT':'weight', 'UNITSIZE':'sqft'}, inplace = True)
+    df.rename(columns = {'BEDROOMS':'#_of_bedrooms', 'WEIGHT':'weight', 'SQFTRANGE':'sqft'}, inplace = True)
 
 #%% RUN
 #Replace columns data with common values'
@@ -60,15 +74,15 @@ if dataset == 'recs20':
     #   (1)before 1960, (2)1960-1969, (3)1970-1979, (4)1980-1989, (5)1990-1999, (6)after 2000 
     # To most closely match past study:
     #   (1)before 1940, (2)1940-1969, (3)1970-1989, (4)1990-1999, (5)after 2000
-    df.loc[df["YEARMADERANGE"] == 1, "year_built"] = "1" #1 = Before 1950
-    df.loc[df["YEARMADERANGE"] == 2, "year_built"] = "1" #2 = 1950 to 1959
+    df.loc[df["YEARMADERANGE"] == 1, "year_built"] = "2" #1 = Before 1950
+    df.loc[df["YEARMADERANGE"] == 2, "year_built"] = "2" #2 = 1950 to 1959
     df.loc[df["YEARMADERANGE"] == 3, "year_built"] = "2" #3 = 1960 to 1969
     df.loc[df["YEARMADERANGE"] == 4, "year_built"] = "3" #4 = 1970 to 1979
-    df.loc[df["YEARMADERANGE"] == 5, "year_built"] = "4" #5 = 1980 to 1989
-    df.loc[df["YEARMADERANGE"] == 6, "year_built"] = "5" #6 = 1990 to 1999
-    df.loc[df["YEARMADERANGE"] == 7, "year_built"] = "6" #7 = 2000 to 2009
-    df.loc[df["YEARMADERANGE"] == 8, "year_built"] = "6" #8 = 2010 to 2015
-    df.loc[df["YEARMADERANGE"] == 9, "year_built"] = "6" #9 = 2016 to 2020
+    df.loc[df["YEARMADERANGE"] == 5, "year_built"] = "3" #5 = 1980 to 1989
+    df.loc[df["YEARMADERANGE"] == 6, "year_built"] = "4" #6 = 1990 to 1999
+    df.loc[df["YEARMADERANGE"] == 7, "year_built"] = "5" #7 = 2000 to 2009
+    df.loc[df["YEARMADERANGE"] == 8, "year_built"] = "5" #8 = 2010 to 2015
+    df.loc[df["YEARMADERANGE"] == 9, "year_built"] = "5" #9 = 2016 to 2020
     # garage
     # change valued to match past study
     # (1)No & (2)Yes
@@ -81,8 +95,8 @@ if dataset == 'recs20':
     df.loc[df['STORIES'] == 1, "#_of_floors"] = "1"
     df.loc[df['STORIES'] == 2, "#_of_floors"] = "2"
     df.loc[df['STORIES'] == 3, "#_of_floors"] = "3"
-    df.loc[df['STORIES'] == 4, "#_of_floors"] = "3"
-    df.loc[df['STORIES'] == 5, "#_of_floors"] = "sl"
+    df.loc[df['STORIES'] == 4, "#_of_floors"] = "4"
+    df.loc[df['STORIES'] == 5, "#_of_floors"] = "2"
     df.loc[df['STORIES'] == -2, "#_of_floors"] = "n/a"
     # foundation
     # (1)concrete slab, (2)crawl space, (3)Basement, (4)n/a
@@ -97,7 +111,6 @@ if dataset == 'recs20':
     df.loc[(df['CELLAR'] == 1) & (df['CRAWL'] == 1) & (df['CONCRETE'] == 1), "foundation"] = "4"
     # air conditioning set up
     # (1)Central system, (2)Individual units, (3)Both, (4)None
-    # If using the recs public file the A/C set up will be a "ACEQUIPM_pub" call, If using the EIA nonpublic recs file the call will be "ACEQUIPM_PUB".
     df.loc[df['ACEQUIPM_PUB'] == 1, "air_conditioning"] = "1" # Central system
     df.loc[df['ACEQUIPM_PUB'] == 3, "air_conditioning"] = "2" # Individual units
     df.loc[df['ACEQUIPM_PUB'] == 4, "air_conditioning"] = "2" # Individual units
@@ -156,6 +169,7 @@ if dataset == 'recs20':
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 20) & (df["building_units"] <= 49), "#_of_units"] = "4"
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 50), "#_of_units"] = "5"
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] == 1), "#_of_units"] = "TEST" #This was not expected to be needed, it also does not make since that it is there.
+
 elif dataset == 'ahs21':
     print('AHS dataset known problems')
     df.loc[df["BLD"] == '01', "TypeofHousehold"] = "mobile_home"
@@ -192,61 +206,61 @@ elif dataset == 'ahs21':
     df.loc[df["YRBUILT"] == 1919, "year_built"] = "1" #1919 = 1919 or earlier
     df.loc[df["YRBUILT"] == 1920, "year_built"] = "1" #1920 = 1920 to 1929
     df.loc[df["YRBUILT"] == 1930, "year_built"] = "1" #1930 = 1930 to 1939
-    df.loc[df["YRBUILT"] == 1940, "year_built"] = "1" #1940 = 1940 to 1949
-    df.loc[df["YRBUILT"] == 1950, "year_built"] = "1" #1950 = 1950 to 1959
+    df.loc[df["YRBUILT"] == 1940, "year_built"] = "2" #1940 = 1940 to 1949
+    df.loc[df["YRBUILT"] == 1950, "year_built"] = "2" #1950 = 1950 to 1959
     df.loc[df["YRBUILT"] == 1960, "year_built"] = "2" #1960 = 1960 to 1969
     df.loc[df["YRBUILT"] == 1970, "year_built"] = "3" #1970 = 1970 to 1979
-    df.loc[df["YRBUILT"] == 1980, "year_built"] = "4" #1980 = 1980 to 1989
-    df.loc[df["YRBUILT"] == 1990, "year_built"] = "5" #1990 = 1990 to 1999
-    df.loc[df["YRBUILT"] >= 2000, "year_built"] = "6" #2000 = 2000 to 2009 The > catches all values higher up to 2021
+    df.loc[df["YRBUILT"] == 1980, "year_built"] = "2" #1980 = 1980 to 1989
+    df.loc[df["YRBUILT"] == 1990, "year_built"] = "4" #1990 = 1990 to 1999
+    df.loc[df["YRBUILT"] >= 2000, "year_built"] = "5" #2000 = 2000 to 2009 The > catches all values higher up to 2021
     # mobile_home floor_area
     # (1)less than 1500sq/sf (2)greater than 1500sq/ft
-    df.loc[(df["sqft"] == '1') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "1" #'1' = Less than 500 square feet
-    df.loc[(df["sqft"] == '2') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "1" #'2' = 500 to 749 square feet
-    df.loc[(df["sqft"] == '3') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "1" #'3' = 750 to 999 square feet
-    df.loc[(df["sqft"] == '4') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "1" #'4' = 1,000 to 1,499 square feet
-    df.loc[(df["sqft"] == '5') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'5' = 1,500 to 1,999 square feet
-    df.loc[(df["sqft"] == '6') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'6' = 2,000 to 2,499 square feet
-    df.loc[(df["sqft"] == '7') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'7' = 2,500 to 2,999 square feet
-    df.loc[(df["sqft"] == '8') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'8' = 3,000 to 3,999 square feet
-    df.loc[(df["sqft"] == '9') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'9' = 4,000 square feet or more
-    df.loc[(df["sqft"] == '-9') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "n/a" #'-9' = Not reported
+    df.loc[(df["UNITSIZE"] == '1') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "1" #'1' = Less than 500 square feet
+    df.loc[(df["UNITSIZE"] == '2') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "1" #'2' = 500 to 749 square feet
+    df.loc[(df["UNITSIZE"] == '3') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "1" #'3' = 750 to 999 square feet
+    df.loc[(df["UNITSIZE"] == '4') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "1" #'4' = 1,000 to 1,499 square feet
+    df.loc[(df["UNITSIZE"] == '5') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'5' = 1,500 to 1,999 square feet
+    df.loc[(df["UNITSIZE"] == '6') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'6' = 2,000 to 2,499 square feet
+    df.loc[(df["UNITSIZE"] == '7') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'7' = 2,500 to 2,999 square feet
+    df.loc[(df["UNITSIZE"] == '8') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'8' = 3,000 to 3,999 square feet
+    df.loc[(df["UNITSIZE"] == '9') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "2" #'9' = 4,000 square feet or more
+    df.loc[(df["UNITSIZE"] == '-9') & (df["TypeofHousehold"] == "mobile_home"), "floor_area"] = "n/a" #'-9' = Not reported
     # attached single family floor_area
     # (1)less than 1500sq/sf (2)1500-2500sq/ft (3)greater than 2500sq/ft
-    df.loc[(df["sqft"] == '1') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #'1' = Less than 500 square feet
-    df.loc[(df["sqft"] == '2') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #'2' = 500 to 749 square feet
-    df.loc[(df["sqft"] == '3') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #'3' = 750 to 999 square feet
-    df.loc[(df["sqft"] == '4') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #'4' = 1,000 to 1,499 square feet
-    df.loc[(df["sqft"] == '5') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "2" #'5' = 1,500 to 1,999 square feet
-    df.loc[(df["sqft"] == '6') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "2" #'6' = 2,000 to 2,499 square feet
-    df.loc[(df["sqft"] == '7') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "3" #'7' = 2,500 to 2,999 square feet
-    df.loc[(df["sqft"] == '8') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "3" #'8' = 3,000 to 3,999 square feet
-    df.loc[(df["sqft"] == '9') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "3" #'9' = 4,000 square feet or more
-    df.loc[(df["sqft"] == '-9') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "n/a" #'-9' = Not reported
+    df.loc[(df["UNITSIZE"] == '1') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #'1' = Less than 500 square feet
+    df.loc[(df["UNITSIZE"] == '2') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #'2' = 500 to 749 square feet
+    df.loc[(df["UNITSIZE"] == '3') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #'3' = 750 to 999 square feet
+    df.loc[(df["UNITSIZE"] == '4') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #'4' = 1,000 to 1,499 square feet
+    df.loc[(df["UNITSIZE"] == '5') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "2" #'5' = 1,500 to 1,999 square feet
+    df.loc[(df["UNITSIZE"] == '6') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "2" #'6' = 2,000 to 2,499 square feet
+    df.loc[(df["UNITSIZE"] == '7') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "3" #'7' = 2,500 to 2,999 square feet
+    df.loc[(df["UNITSIZE"] == '8') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "3" #'8' = 3,000 to 3,999 square feet
+    df.loc[(df["UNITSIZE"] == '9') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "3" #'9' = 4,000 square feet or more
+    df.loc[(df["UNITSIZE"] == '-9') & (df["TypeofHousehold"] == "attached"), "floor_area"] = "n/a" #'-9' = Not reported
     # detached single family floor_area
     # (1)less than 1500sq/sf (2)1500-2500sq/ft (3)greater than 2500sq/ft
-    df.loc[(df["sqft"] == '1') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #'1' = Less than 500 square feet
-    df.loc[(df["sqft"] == '2') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #'2' = 500 to 749 square feet
-    df.loc[(df["sqft"] == '3') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #'3' = 750 to 999 square feet
-    df.loc[(df["sqft"] == '4') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #'4' = 1,000 to 1,499 square feet
-    df.loc[(df["sqft"] == '5') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "2" #'5' = 1,500 to 1,999 square feet
-    df.loc[(df["sqft"] == '6') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "2" #'6' = 2,000 to 2,499 square feet
-    df.loc[(df["sqft"] == '7') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "3" #'7' = 2,500 to 2,999 square feet
-    df.loc[(df["sqft"] == '8') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "3" #'8' = 3,000 to 3,999 square feet
-    df.loc[(df["sqft"] == '9') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "3" #'9' = 4,000 square feet or more
-    df.loc[(df["sqft"] == '-9') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "n/a" #'-9' = Not reported
+    df.loc[(df["UNITSIZE"] == '1') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #'1' = Less than 500 square feet
+    df.loc[(df["UNITSIZE"] == '2') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #'2' = 500 to 749 square feet
+    df.loc[(df["UNITSIZE"] == '3') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #'3' = 750 to 999 square feet
+    df.loc[(df["UNITSIZE"] == '4') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #'4' = 1,000 to 1,499 square feet
+    df.loc[(df["UNITSIZE"] == '5') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "2" #'5' = 1,500 to 1,999 square feet
+    df.loc[(df["UNITSIZE"] == '6') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "2" #'6' = 2,000 to 2,499 square feet
+    df.loc[(df["UNITSIZE"] == '7') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "3" #'7' = 2,500 to 2,999 square feet
+    df.loc[(df["UNITSIZE"] == '8') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "3" #'8' = 3,000 to 3,999 square feet
+    df.loc[(df["UNITSIZE"] == '9') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "3" #'9' = 4,000 square feet or more
+    df.loc[(df["UNITSIZE"] == '-9') & (df["TypeofHousehold"] == "detached"), "floor_area"] = "n/a" #'-9' = Not reported
     # apartment floor_area
     # (1)less than 1000sq/sf (2)greater than 1000sq/ft
-    df.loc[(df["sqft"] == '1') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "1" #'1' = Less than 500 square feet
-    df.loc[(df["sqft"] == '2') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "1" #'2' = 500 to 749 square feet
-    df.loc[(df["sqft"] == '3') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "1" #'3' = 750 to 999 square feet
-    df.loc[(df["sqft"] == '4') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'4' = 1,000 to 1,499 square feet
-    df.loc[(df["sqft"] == '5') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'5' = 1,500 to 1,999 square feet
-    df.loc[(df["sqft"] == '6') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'6' = 2,000 to 2,499 square feet
-    df.loc[(df["sqft"] == '7') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'7' = 2,500 to 2,999 square feet
-    df.loc[(df["sqft"] == '8') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'8' = 3,000 to 3,999 square feet
-    df.loc[(df["sqft"] == '9') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'9' = 4,000 square feet or more
-    df.loc[(df["sqft"] == '-9') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "n/a" #'-9' = Not reported
+    df.loc[(df["UNITSIZE"] == '1') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "1" #'1' = Less than 500 square feet
+    df.loc[(df["UNITSIZE"] == '2') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "1" #'2' = 500 to 749 square feet
+    df.loc[(df["UNITSIZE"] == '3') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "1" #'3' = 750 to 999 square feet
+    df.loc[(df["UNITSIZE"] == '4') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'4' = 1,000 to 1,499 square feet
+    df.loc[(df["UNITSIZE"] == '5') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'5' = 1,500 to 1,999 square feet
+    df.loc[(df["UNITSIZE"] == '6') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'6' = 2,000 to 2,499 square feet
+    df.loc[(df["UNITSIZE"] == '7') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'7' = 2,500 to 2,999 square feet
+    df.loc[(df["UNITSIZE"] == '8') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'8' = 3,000 to 3,999 square feet
+    df.loc[(df["UNITSIZE"] == '9') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "2" #'9' = 4,000 square feet or more
+    df.loc[(df["UNITSIZE"] == '-9') & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "n/a" #'-9' = Not reported
     # garage
     # change valued to match past study
     # (1)No & (2)Yes
@@ -255,14 +269,10 @@ elif dataset == 'ahs21':
     df.loc[df['GARAGE'] == '-9', "garage"] = "1"
     # number of floors
     # true values
-    df["STORIES_temp"] = df['STORIES'].mask(df.FOUNDTYPE == '1',df['STORIES']-1)
-    df.loc[df['STORIES_temp'] == 1, "#_of_floors"] = "1"
-    df.loc[df['STORIES_temp'] == 2, "#_of_floors"] = "2"
-    df.loc[df['STORIES_temp'] == 3, "#_of_floors"] = "3"
-    df.loc[df['STORIES_temp'] == 4, "#_of_floors"] = "3"
-    df.loc[df['STORIES_temp'] == 5, "#_of_floors"] = "3"
-    df.loc[df['STORIES_temp'] == 6, "#_of_floors"] = "4"
-    df.loc[df['STORIES_temp'] == 7, "#_of_floors"] = "4"
+    df.loc[df['STORIES'] == 1, "#_of_floors"] = "1"
+    df.loc[df['STORIES'] == 2, "#_of_floors"] = "2"
+    df.loc[(df['STORIES'] >= 3) & (df['STORIES'] <= 5), "#_of_floors"] = "3"
+    df.loc[df['STORIES'] >= 6, "#_of_floors"] = "4"
     # foundation
     # (1)concrete slab, (2)crawl space, (3)Basement, (4)n/a
     df.loc[df['FOUNDTYPE'] == '4', "foundation"] = "1"
@@ -332,13 +342,10 @@ elif dataset == 'ahs21':
     df.loc[df['ACPRIMARY'] == '10', "air_conditioning"] = "2" # Individual units
     df.loc[df['ACPRIMARY'] == '11', "air_conditioning"] = "2" # Individual units
     df.loc[df['ACPRIMARY'] == '12', "air_conditioning"] = "4" # None
-#%%
+
 # Drop unused variable, make household dataframes, and build home definition
 print('drop unused variable')
-if dataset == 'recs20':
-    df = df[['TypeofHousehold','#_of_floors','#_of_units','floor_area','year_built','foundation','garage','forced-air','weight','#_of_bedrooms','#_of_bathrooms','#_of_halfbathrooms','#_of_otherrooms','#_of_windows','air_conditioning','sqft',"building_units"]]
-elif dataset == 'ahs21':
-    df = df[['TypeofHousehold','#_of_floors','#_of_units','floor_area','year_built','foundation','garage','forced-air','weight','#_of_bedrooms','#_of_bathrooms','#_of_halfbathrooms','#_of_otherrooms','#_of_windows','air_conditioning','sqft']]
+df = df[['TypeofHousehold','#_of_floors','#_of_units','floor_area','year_built','foundation','garage','forced-air','weight','#_of_bedrooms','#_of_bathrooms','#_of_halfbathrooms','#_of_otherrooms','#_of_windows','air_conditioning','sqft']]
 
 print('make four household type dataframes')
 apartment = df.loc[df['TypeofHousehold'] == 'apartment', df.columns.drop(['foundation', 'garage'])]
@@ -358,46 +365,26 @@ attached['home_definition'] = attached['#_of_floors']+attached['floor_area']+att
 detached['home_definition'] = detached['#_of_floors']+detached['floor_area']+detached['year_built']+detached['foundation']+detached['garage']+detached['forced-air']
 mobile_home['home_definition'] = mobile_home['floor_area']+mobile_home['year_built']+mobile_home['forced-air']
 
-#%% RUN to print unique home counts
-# Print # of unique homes 
-print('# of unique apartments: ')
-print(apartment['home_definition'].nunique())
-print(apartment['home_definition_year'].nunique())
-print('# of unique attached homes:')
-print(attached['home_definition'].nunique())
-print(attached['home_definition_year'].nunique())
-print('# of unique detached homes:')
-print(detached['home_definition'].nunique())
-print(detached['home_definition_year'].nunique())
-print('# of unique mobile homes:')
-print(mobile_home['home_definition'].nunique())
-print(mobile_home['home_definition_year'].nunique())
-
 #%% RUN
 # Make home characteristic datasets
 print('Making home characteristic datasets')
-#apartment_characteristic = apartment.groupby(['home_definition']).agg({'home_definition_year':['min'],'#_of_floors':['min'],'#_of_units':['min'],'floor_area': ['min'],
-#    'year_built':['min'], 'forced-air':['min'],'home_definition':['count'],'weight':['sum']}).rename(columns={'home_definition':'#_of_homes'})
+apartment_characteristic = apartment.groupby(['home_definition']).agg({'home_definition_year':['min'],'#_of_floors':['min'],'#_of_units':['min'],'floor_area': ['min'],
+    'year_built':['min'], 'forced-air':['min'],'home_definition':['count'],'weight':['sum']}).rename(columns={'home_definition':'#_of_homes'})
 
-if dataset == 'recs20':
-    apartment_characteristic1 = apartment.groupby('home_definition').apply(lambda x: pd.Series((x['building_units']*x['weight']).sum()/x['weight'].sum(),index=['#_of_units_avg']))
-    apartment_characteristic2 = apartment.groupby(['home_definition']).agg({'home_definition_year':'min','#_of_floors':'min','#_of_units':'min', 'floor_area': 'min',
-    'year_built':'min','forced-air':'min','home_definition':'count','weight':'sum'}).rename(columns={'home_definition':'#_of_homes'})
-    apartment_characteristic = pd.merge(apartment_characteristic1,apartment_characteristic2,on='home_definition')
-    apartment_characteristic = apartment_characteristic[['home_definition_year','#_of_floors','#_of_units','#_of_units_avg','floor_area','year_built','forced-air','#_of_homes','weight']]
-elif dataset == 'ahs21':
-    apartment_characteristic = apartment.groupby(['home_definition']).agg({'home_definition_year':'min','#_of_floors':'min','#_of_units':'min', 'floor_area': 'min',
-    'year_built':'min','forced-air':'min','home_definition':'count','weight':'sum'}).rename(columns={'home_definition':'#_of_homes'})
-    apartment_characteristic = apartment_characteristic[['home_definition_year','#_of_floors','#_of_units','floor_area','year_built','forced-air','#_of_homes','weight']]
+attached_characteristic = attached.groupby(['home_definition']).agg({'home_definition_year':['min'],'#_of_floors':['min'],'floor_area': ['min'],
+    'year_built':['min'], 'foundation': ['min'],'garage':['min'],'forced-air':['min'],'home_definition':['count'],'weight':['sum'],}).rename(columns={'home_definition':'#_of_homes'})
 
-attached_characteristic = attached.groupby(['home_definition']).agg({'home_definition_year':'min','#_of_floors':'min','floor_area':'min','year_built':'min','foundation':'min',
-    'garage':'min','forced-air':'min','home_definition':'count','weight':'sum',}).rename(columns={'home_definition':'#_of_homes'})
+detached_characteristic = detached.groupby(['home_definition']).agg({'home_definition_year':['min'],'#_of_floors':['min'],'floor_area': ['min'],
+    'year_built':['min'], 'foundation': ['min'],'garage':['min'],'forced-air':['min'],'home_definition':['count'],'weight':['sum'],}).rename(columns={'home_definition':'#_of_homes'})
 
-detached_characteristic = detached.groupby(['home_definition']).agg({'home_definition_year':'min','#_of_floors':'min','floor_area':'min','year_built':'min','foundation':'min',
-    'garage':'min','forced-air':'min','home_definition':'count','weight':'sum',}).rename(columns={'home_definition':'#_of_homes'})
+mobile_home_characteristic = mobile_home.groupby(['home_definition']).agg({'home_definition_year':['min'],'floor_area': ['min'],'year_built':['min'],
+    'forced-air':['min'],'home_definition':['count'],'weight':['sum']}).rename(columns={'home_definition':'#_of_homes'})
 
-mobile_home_characteristic = mobile_home.groupby(['home_definition']).agg({'home_definition_year':'min','floor_area':'min','year_built':'min','forced-air':'min',
-    'home_definition':'count','weight':'sum'}).rename(columns={'home_definition':'#_of_homes'})
+# Drop second part of muilti level index 
+apartment_characteristic.columns = apartment_characteristic.columns.droplevel(1)
+attached_characteristic.columns = attached_characteristic.columns.droplevel(1)
+detached_characteristic.columns = detached_characteristic.columns.droplevel(1)
+mobile_home_characteristic.columns = mobile_home_characteristic.columns.droplevel(1)
 
 # Sort datasets by ________
 print('Sorting datasets by national home weight')
@@ -419,35 +406,10 @@ apartment_characteristic['running_%']=(apartment_characteristic['weight'].cumsum
 attached_characteristic['running_%']=(attached_characteristic['weight'].cumsum()/attached_characteristic['weight'].sum())*100
 detached_characteristic['running_%']=(detached_characteristic['weight'].cumsum()/detached_characteristic['weight'].sum())*100
 mobile_home_characteristic['running_%']=(mobile_home_characteristic['weight'].cumsum()/mobile_home_characteristic['weight'].sum())*100
-
-#%% RUN for plot
-# Plot Percentage coverage as a function of dataset sample size
-output_file("YearBuiltRemoved_Percentage_coverage_" + dataset + "_update.html")
-
-p = figure(x_range=[0, 850], y_range=[0, 100], max_width=800, height=400)
-
-p.line(apartment_characteristic['count'], apartment_characteristic['running_%'], legend_label="Apartments", line_color="red", line_dash="solid")
-p.line(attached_characteristic['count'], attached_characteristic['running_%'], legend_label="Attached_Dwellings", line_color="green", line_dash= "dashed")
-p.line(detached_characteristic['count'], detached_characteristic['running_%'], legend_label="Detached_Dwellings", line_color="orange", line_dash="dotted")
-p.line(mobile_home_characteristic['count'], mobile_home_characteristic['running_%'], legend_label="Manufactured_Dwellings", line_color="blue", line_dash="dotdash")
-
-#p.title.text = "Percentage coverage as a function of " + dataset + " sample size"
-#p.title.text_font_size = '12pt'
-#p.title.align = 'center'
-
-p.xaxis.axis_label = "Number of Dwelling  (#)"
-
-p.yaxis.axis_label = "Percent of Building Stock Represented (%)"
-
-p.legend.location = "bottom_right"
-
-width = Span(dimension="width", line_width=1)
-height = Span(dimension="height", line_width=1)
-
-p.add_tools(HoverTool(tooltips=[("(#,%)","($x{0.0},$y{0.0})")]))
-p.add_tools(CrosshairTool(overlay=[width, height]))
-
-show(p)
+apartment_characteristic['%']=(apartment_characteristic['weight']/apartment_characteristic['weight'].sum())*100
+attached_characteristic['%']=(attached_characteristic['weight']/attached_characteristic['weight'].sum())*100
+detached_characteristic['%']=(detached_characteristic['weight']/detached_characteristic['weight'].sum())*100
+mobile_home_characteristic['%']=(mobile_home_characteristic['weight']/mobile_home_characteristic['weight'].sum())*100
 
 #%% RUN
 # Make variables to solve for diffrent home variables 
@@ -573,52 +535,6 @@ mobile_home_halfbathrooms_characteristic.sort_values(by='#_of_halfbathrooms_vari
 mobile_home_otherrooms_characteristic.sort_values(by='#_of_otherrooms_variable', ascending=True,inplace=True)
 mobile_home_air_conditioning_characteristic.sort_values(by='air_conditioning_variable', ascending=True,inplace=True)
 
-#%% RUN to Write home characteristics excel files
-# Write all home characteristics datasets to excel files
-print('Write apartment characteristics datasets to excel file')
-with pd.ExcelWriter(dataset+"_apartment_characteristics.xlsx") as writer:
-    # use to_excel function and specify the sheet_name and index
-    # to store the dataframe in specified sheet
-    apartment_characteristic.to_excel(writer, sheet_name="apartment_characteristic", index=True)
-    apartment_bedrooms_characteristic.to_excel(writer, sheet_name="bedrooms", index=True)
-    apartment_bathrooms_characteristic.to_excel(writer, sheet_name="bathrooms", index=True)
-    apartment_halfbathrooms_characteristic.to_excel(writer, sheet_name="halfbathrooms", index=True)
-    apartment_otherrooms_characteristic.to_excel(writer, sheet_name="otherrooms", index=True)
-    apartment_air_conditioning_characteristic.to_excel(writer, sheet_name="air_conditioning", index=True)
-
-print('Write attached home characteristics datasets to excel file')
-with pd.ExcelWriter(dataset+"_attached_characteristics.xlsx") as writer:
-    # use to_excel function and specify the sheet_name and index
-    # to store the dataframe in specified sheet
-    attached_characteristic.to_excel(writer, sheet_name="attached_characteristic", index=True)
-    attached_bedrooms_characteristic.to_excel(writer, sheet_name="bedrooms", index=True)
-    attached_bathrooms_characteristic.to_excel(writer, sheet_name="bathrooms", index=True)
-    attached_halfbathrooms_characteristic.to_excel(writer, sheet_name="halfbathrooms", index=True)
-    attached_otherrooms_characteristic.to_excel(writer, sheet_name="otherrooms", index=True)
-    attached_air_conditioning_characteristic.to_excel(writer, sheet_name="air_conditioning", index=True)
-
-print('Write detached home characteristics datasets to excel file')
-with pd.ExcelWriter(dataset+"_detached_characteristics.xlsx") as writer:
-    # use to_excel function and specify the sheet_name and index
-    # to store the dataframe in specified sheet
-    detached_characteristic.to_excel(writer, sheet_name="detached_characteristic", index=True)
-    detached_bedrooms_characteristic.to_excel(writer, sheet_name="bedrooms", index=True)
-    detached_bathrooms_characteristic.to_excel(writer, sheet_name="bathrooms", index=True)
-    detached_halfbathrooms_characteristic.to_excel(writer, sheet_name="halfbathrooms", index=True)
-    detached_otherrooms_characteristic.to_excel(writer, sheet_name="otherrooms", index=True)
-    detached_air_conditioning_characteristic.to_excel(writer, sheet_name="air_conditioning", index=True)
-
-print('Write mobile home characteristics datasets to excel file')
-with pd.ExcelWriter(dataset+"_mobile_home_characteristics.xlsx") as writer:
-    # use to_excel function and specify the sheet_name and index
-    # to store the dataframe in specified sheet
-    mobile_home_characteristic.to_excel(writer, sheet_name="mobile_home_characteristic", index=True)
-    mobile_home_bedrooms_characteristic.to_excel(writer, sheet_name="bedrooms", index=True)
-    mobile_home_bathrooms_characteristic.to_excel(writer, sheet_name="bathrooms", index=True)
-    mobile_home_halfbathrooms_characteristic.to_excel(writer, sheet_name="halfbathrooms", index=True)
-    mobile_home_otherrooms_characteristic.to_excel(writer, sheet_name="otherrooms", index=True)
-    mobile_home_air_conditioning_characteristic.to_excel(writer, sheet_name="air_conditioning", index=True)
-
 #%% RUN
 # Sort room characteristic dataframe by weight and remove duplicate home definitions. This finds the highest weighted home chacteristic.
 apartment_bedrooms_characteristic = apartment_bedrooms_characteristic.sort_values(by='weight', ascending=False).drop_duplicates(['home_definition'])
@@ -664,7 +580,7 @@ mobile_home_halfbathrooms_characteristic = mobile_home_halfbathrooms_characteris
 mobile_home_otherrooms_characteristic = mobile_home_otherrooms_characteristic[['home_definition','#_of_otherrooms']]
 mobile_home_air_conditioning_characteristic = mobile_home_air_conditioning_characteristic[['home_definition','air_conditioning']]
 
-# removes home_definition column from dataframe this will be repaced with the index (this is done due to data type problems)
+# removes home_definition column from dataframe this will be repaced would the index (this is done due to data type problems)
 #apartment_characteristic = apartment_characteristic.drop(columns=['home_definition'])
 #attached_characteristic = attached_characteristic.drop(columns=['home_definition'])
 #detached_characteristic = detached_characteristic.drop(columns=['home_definition'])
@@ -700,45 +616,16 @@ mobile_home_characteristic = mobile_home_characteristic.merge(mobile_home_air_co
 
 #%% RUN to save final home characteristics file to CSV
 # Save final home characteristics file to CSV
-apartment_characteristic.to_csv(dataset + "_apartment_characteristics.csv", index=False)
-attached_characteristic.to_csv(dataset + "_attached_characteristics.csv", index=False)
-detached_characteristic.to_csv(dataset + "_detached_characteristics.csv", index=False)
-mobile_home_characteristic.to_csv(dataset + "_mobile_home_characteristics.csv", index=False)
-
-#%%
-if dataset == 'recs20':
-    print('apartment')
-    print(apartment.groupby(['sqft','#_of_units'])['weight'].sum())
-    print('attached')
-    print(attached.groupby('sqft')['weight'].sum())
-    print('detached')
-    print(detached.groupby('sqft')['weight'].sum())
-    print('mobile_home')
-    print(mobile_home.groupby('sqft')['weight'].sum())
-
-elif dataset == 'ahs21':
-    print('apartment')
-    print(apartment.groupby(['sqft','#_of_units'])['weight'].sum())
-    print('attached')
-    print(attached.groupby('sqft')['weight'].sum())
-    print('detached')
-    print(detached.groupby('sqft')['weight'].sum())
-    print('mobile_home')
-    print(mobile_home.groupby('sqft')['weight'].sum())
-
-#'1' = Less than 500 square feet
-#'2' = 500 to 749 square feet
-#'3' = 750 to 999 square feet
-#'4' = 1,000 to 1,499 square feet
-#'5' = 1,500 to 1,999 square feet
-#'6' = 2,000 to 2,499 square feet
-#'7' = 2,500 to 2,999 square feet
-#'8' = 3,000 to 3,999 square feet
-#'9' = 4,000 square feet or more
+apartment_characteristic.to_csv(OUTPUT_DATA_DIR / f"1997_{dataset}_apartment_characteristics.csv", index=False)
+attached_characteristic.to_csv(OUTPUT_DATA_DIR / f"1997_{dataset}_attached_characteristics.csv", index=False)
+detached_characteristic.to_csv(OUTPUT_DATA_DIR / f"1997_{dataset}_detached_characteristics.csv", index=False)
+mobile_home_characteristic.to_csv(OUTPUT_DATA_DIR / f"1997_{dataset}_mobile_home_characteristics.csv", index=False)
 
 #%% DO NOT RUN Left over code
 # Not valid since both sqft and home age variables do match the past study.
 # import 1997 definitions
-home_definitions_1997 = pd.read_csv('1997_home_definitions.csv',dtype=np.object_)
+home_definitions_1997 = pd.read_csv(DATA_DIR / "1997_home_definitions.csv", dtype=np.object_)
 
-test = [e for e in apartment['home_definition'].unique() if e not in list(home_definitions_1997['apartment'].unique())]
+#%%
+test = [e for e in mobile_home_characteristic['home_definition'].unique() if e in list(home_definitions_1997['mobile_home'].unique())]
+# %%

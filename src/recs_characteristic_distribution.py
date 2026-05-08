@@ -1,7 +1,12 @@
-# -*- coding: utf-8 -*-
-#%% import needed modules and define directory path
-print('Importing needed modules and define directory path.')
-import os
+"""
+Purpose: Computes weighted dwelling characteristic distributions from RECS 2015, RECS 2020,
+         AHS 2019, or AHS 2021 survey data. Exports per-type CSV tables and a Bokeh
+         percentage-coverage HTML plot.
+Author: Nathan Lima
+Created: 2023-05-03
+"""
+import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from bokeh.plotting import figure, output_file, show
@@ -9,32 +14,44 @@ from bokeh.models.tools import HoverTool, CrosshairTool, Span
 from bokeh.layouts import gridplot
 from bokeh.models import CrosshairTool, Span
 
-absolute_path = 'C:/Users/nml/OneDrive - NIST/Documents/NIST/suit_of_homes_research/'
-os.chdir(absolute_path)
+_config_path = Path(__file__).resolve().parent.parent / "data_config.json"
+if not _config_path.exists():
+    raise FileNotFoundError(
+        f"data_config.json not found at {_config_path}. "
+        "Copy data_config.template.json to data_config.json and update the paths."
+    )
+with open(_config_path) as f:
+    _cfg = json.load(f)
 
-#%% Select dataset
+DATA_DIR = Path(_cfg["data_dir"])
+RESULTS_DIR = Path(_cfg["results_dir"])
+OUTPUT_DATA_DIR = RESULTS_DIR / "output_data"
+FIGURES_DIR = RESULTS_DIR / "figures"
+OUTPUT_DATA_DIR.mkdir(parents=True, exist_ok=True)
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+
 # use only one dataset at a time
-dataset = 'ahs21' #select 'recs15', 'recs20' , 'ahs19' , 'ahs21'
-print('dataset selected: '+dataset)
+dataset = 'ahs21'  # select 'recs15', 'recs20', 'ahs19', 'ahs21'
+print('dataset selected: ' + dataset)
 
-#%% Set up Datasets that are used
-print(dataset + ' dataset selected and final file path defined')
+# Set up datasets
+print(dataset + ' dataset selected and path defined')
 
 if dataset == 'recs15':
-    df = pd.read_csv("./recs_data/2015/recs2015_public_v4.csv")
+    df = pd.read_csv(DATA_DIR / "recs_data" / "2015" / "recs2015_public_v4.csv")
     df.rename(columns = {'NWEIGHT':'weight', 'BEDROOMS':'#_of_bedrooms', 'NCOMBATH':'#_of_bathrooms', 'NHAFBATH':'#_of_halfbathrooms', 'OTHROOMS':'#_of_otherrooms', 'WINDOWS':'#_of_windows'}, inplace = True)
 elif dataset == 'recs20':
-    df = pd.read_csv("./recs_data/2020/recs2020_public_v1_data.csv")
+    df = pd.read_csv(DATA_DIR / "recs_data" / "2020" / "recs2020_public_v1_data.csv")
     df.rename(columns = {'NWEIGHT':'weight', 'BEDROOMS':'#_of_bedrooms', 'NCOMBATH':'#_of_bathrooms', 'NHAFBATH':'#_of_halfbathrooms', 'OTHROOMS':'#_of_otherrooms', 'WINDOWS':'#_of_windows'}, inplace = True)
 elif dataset == 'ahs19':
-    df = pd.read_csv("./ahs_data/2019/household.csv")
+    df = pd.read_csv(DATA_DIR / "ahs_data" / "2019" / "household.csv")
     df.replace('\'','',regex=True,inplace=True)
     df.drop(df.index[df['BLD']=='10'],inplace=True) #remove boat_rv_etc
-    df.drop(df.index[df['UNITSIZE']=='-9'],inplace=True) #remove all units without a sqft size 
+    df.drop(df.index[df['UNITSIZE']=='-9'],inplace=True) #remove all units without a sqft size
     df=df.copy()
     df.rename(columns = {'BEDROOMS':'#_of_bedrooms', 'WEIGHT':'weight'}, inplace = True)
 elif dataset == 'ahs21':
-    df = pd.read_csv("./ahs_data/2021/household.csv")
+    df = pd.read_csv(DATA_DIR / "ahs_data" / "2021" / "household.csv")
     df.replace('\'','',regex=True,inplace=True)
     df.drop(df.index[df['BLD']=='10'],inplace=True) #remove boat_rv_etc
     df.drop(df.index[df['UNITSIZE']=='-9'],inplace=True) #remove all units without a sqft size 
@@ -713,7 +730,7 @@ detached_characteristic['running_%']=(detached_characteristic['weight'].cumsum()
 mobile_home_characteristic['running_%']=(mobile_home_characteristic['weight'].cumsum()/mobile_home_characteristic['weight'].sum())*100
 #%%
 # Plot Percentage coverage as a function of dataset sample size
-output_file("Percentage_coverage_" + dataset + ".html")
+output_file(str(FIGURES_DIR / f"Percentage_coverage_{dataset}.html"))
 
 p = figure()
 
@@ -743,14 +760,14 @@ show(p)
 
 #%% 
 # save to CSV
-apartment_characteristic.to_csv('apartmeant_characteristic_test.csv')
-attached_characteristic.to_csv('attached_characteristic_test.csv')
-detached_characteristic.to_csv('detached_characteristic_test.csv')
-mobile_home_characteristic.to_csv('mobile_home_characteristic_test.csv')
+apartment_characteristic.to_csv(OUTPUT_DATA_DIR / 'apartmeant_characteristic_test.csv')
+attached_characteristic.to_csv(OUTPUT_DATA_DIR / 'attached_characteristic_test.csv')
+detached_characteristic.to_csv(OUTPUT_DATA_DIR / 'detached_characteristic_test.csv')
+mobile_home_characteristic.to_csv(OUTPUT_DATA_DIR / 'mobile_home_characteristic_test.csv')
 
 #%%
 # import 1997 definitions
-home_definitions_1997 = pd.read_csv('1997_home_definitions.csv',dtype=np.object_)
+home_definitions_1997 = pd.read_csv(DATA_DIR / "1997_home_definitions.csv", dtype=np.object_)
 
 #%%
 test = [e for e in apartment['home_definition'].unique() if e not in list(home_definitions_1997['apartment'].unique())]

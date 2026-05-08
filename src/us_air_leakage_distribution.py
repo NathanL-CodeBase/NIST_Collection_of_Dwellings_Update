@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-#%% RUN 
-# import needed modules
-print('Importing needed modules')
-import os
+"""
+Purpose: Computes normalized air leakage (NL) distribution for U.S. dwellings using the
+         LBL residential diagnostics regression model coefficients.
+Author: Nathan Lima
+Created: 2023-05-11
+"""
 import numpy as np
 import pandas as pd
 import math
@@ -11,11 +12,6 @@ from bokeh.plotting import figure, output_file, show
 from bokeh.models.tools import HoverTool, CrosshairTool, Span
 from bokeh.layouts import gridplot
 from bokeh.models import CrosshairTool, Span
-
-#%% RUN User defines directory path for datset, dataset used, and dataset final location
-# User set absolute_path
-absolute_path = 'C:/Users/nml/OneDrive - NIST/Documents/NIST/suit_of_homes_research/' #USER ENTERED PROJECT PATH
-os.chdir(absolute_path)
 
 # ln(NL) = B_area * Area + B_h * H + B_year * I_year + B_IL * I_IL + B_e * I_e
 #  + B_cz * I_cz + B_slab * I_slab + B_floor1 * I_floor1 + B_floor2 * Ifloor2

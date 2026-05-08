@@ -23,7 +23,7 @@ Certain commercial equipment, instruments, software, or materials are identified
 
 ```
 NIST_Collection_of_Dwellings_Update/
-├── scripts/                          # Analysis and processing scripts
+├── src/                          # Analysis and processing scripts
 │   ├── ahs21_weighted_average.py         # Weighted averages for AHS 2021 data
 │   ├── ahs_recs_data_comparison.py       # AHS and RECS cross-survey comparison
 │   ├── characteristic_distribution.py    # Dwelling characteristic distributions
