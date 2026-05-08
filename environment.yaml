@@ -1,0 +1,13 @@
+name: cod
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pandas
+  - numpy
+  - bokeh
+  - matplotlib
+  - openpyxl
+  - scipy
+  - jupyterlab
+  - pip

@@ -1,0 +1,5 @@
+{
+  "_note": "Copy this file to data_config.json, update the paths for your machine, and do not commit data_config.json.",
+  "data_dir": "C:/Users/YourName/path/to/data",
+  "results_dir": "C:/Users/YourName/path/to/results"
+}

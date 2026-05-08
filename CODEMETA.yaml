@@ -1,0 +1,22 @@
+# Topics for the NIST Open Source Portal <https://code.nist.gov>
+#
+# Set the topic tags for your open source repository from the nested
+# list below. Un-comment the relevant lines:
+#
+#     remove the `#` character *and* the space immediately after it
+#
+# so that the YAML syntax remains valid. You may delete everything
+# that does not apply, and add new topics from the NIST Taxonomy
+# <https://data.nist.gov/od/id/691DDF3315711C14E0532457068146BE1907>
+
+---
+categories:
+  - scientific-software
+
+themes:
+  - Buildings and Construction
+      - Building economics
+      - Sustainable buildings
+
+  - Information Technology
+      - Data and informatics
