@@ -107,13 +107,13 @@ Activate the conda environment and run scripts from the repository root:
 conda activate cod
 
 # Dwelling characteristic distributions from RECS 2020
-python scripts/characteristic_distribution.py
+python src/characteristic_distribution.py
 
 # Square-footage-weighted averages
-python scripts/recs20_sqft_weighted_average.py
+python src/recs20_sqft_weighted_average.py
 
 # AHS vs. RECS comparison
-python scripts/ahs_recs_data_comparison.py
+python src/ahs_recs_data_comparison.py
 ```
 
 ## Citation
