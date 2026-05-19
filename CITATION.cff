@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "A Collection of Dwellings to Represent the U.S. Housing Stock (2024 Update) Associated Python Scripts"
+authors:
+  - family-names: Lima
+    given-names: Nathan M.
+    orcid: "https://orcid.org/0009-0004-6252-4368"
+    affiliation: "National Institute of Standards and Technology"
+year: 2024
+doi: "10.18434/mds2-3488"
+repository-code: "https://github.com/usnistgov/NIST_Collection_of_Dwellings_Update"
+license: NIST-PD
+keywords:
+  - residential buildings
+  - housing stock characterization
+  - RECS
+  - AHS
+  - indoor air quality
+  - building energy modeling
+references:
+  - type: report
+    title: "A Collection of Dwellings to Represent the U.S. Dwelling Stock: 2024 Update"
+    authors:
+      - family-names: Lima
+        given-names: Nathan M.
+        orcid: "https://orcid.org/0009-0004-6252-4368"
+        affiliation: "National Institute of Standards and Technology"
+      - family-names: Persily
+        given-names: Andrew K.
+        orcid: "https://orcid.org/0000-0002-9542-3318"
+        affiliation: "National Institute of Standards and Technology"
+      - family-names: Emmerich
+        given-names: Steven J.
+        orcid: "https://orcid.org/0000-0002-3848-9249"
+        affiliation: "National Institute of Standards and Technology"
+    institution:
+      name: "National Institute of Standards and Technology"
+      city: Gaithersburg
+      region: MD
+    number: "NIST TN 2329"
+    year: 2025
+    doi: "10.6028/NIST.TN.2329"
+    url: "https://doi.org/10.6028/NIST.TN.2329"

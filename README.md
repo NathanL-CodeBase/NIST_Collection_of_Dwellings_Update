@@ -118,13 +118,36 @@ python src/ahs_recs_data_comparison.py
 
 ## Citation
 
-If you use this code or data in your research, please cite:
+If you use this software in your research, please cite:
 
-Lima, Nathan M. (2024), A Collection of Dwellings to Represent the U.S. Housing Stock (2024 Update) Associated Python Scripts, National Institute of Standards and Technology, https://doi.org/10.18434/mds2-3488
+```bibtex
+@software{lima2024dwellings,
+  author    = {Lima, Nathan M.},
+  title     = {A Collection of Dwellings to Represent the {U.S.} Housing Stock
+               (2024 Update) Associated Python Scripts},
+  year      = {2024},
+  publisher = {National Institute of Standards and Technology},
+  doi       = {10.18434/mds2-3488},
+  url       = {https://github.com/usnistgov/NIST_Collection_of_Dwellings_Update}
+}
+```
 
 **Related Publication:**
 
-Lima NM, Persily AK, Emmerich SJ (2025) A Collection of Dwellings to Represent the U.S. Dwelling Stock: 2024 Update. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Technical Note (TN) NIST TN 2329. https://doi.org/10.6028/NIST.TN.2329
+```bibtex
+@techreport{lima2025collection,
+  author      = {Lima, Nathan M. and Persily, Andrew K. and Emmerich, Steven J.},
+  title       = {A Collection of Dwellings to Represent the {U.S.} Dwelling Stock:
+                 2024 Update},
+  institution = {National Institute of Standards and Technology},
+  year        = {2025},
+  type        = {NIST Technical Note},
+  number      = {NIST TN 2329},
+  address     = {Gaithersburg, MD},
+  doi         = {10.6028/NIST.TN.2329},
+  url         = {https://doi.org/10.6028/NIST.TN.2329}
+}
+```
 
 ## Contact
 
