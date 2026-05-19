@@ -151,10 +151,10 @@ If you use this software in your research, please cite:
 
 ## Contact
 
-- **PI:** Nathan Lima
-- **NIST Organizational Unit:** Engineering Laboratory
-- **Division:** Building Energy and Environment Division
-- **Group:** Indoor Air Quality and Ventilation Group
+- **PI:** [Dr. Nathan Lima](https://www.nist.gov/people/dr-nathan-lima)
+- **NIST Organizational Unit:** [Engineering Laboratory](https://www.nist.gov/el)
+- **Division:** [Building Energy and Environment Division](https://www.nist.gov/el/beed)
+- **Group:** [Indoor Air Quality and Ventilation Group](https://www.nist.gov/el/beed/indoor-air-quality-ventilation)
 - **Email:** nathan.lima@nist.gov
 
 ## Acknowledgments
