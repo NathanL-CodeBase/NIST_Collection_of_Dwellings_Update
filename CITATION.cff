@@ -2,12 +2,14 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
 title: "A Collection of Dwellings to Represent the U.S. Housing Stock (2024 Update) Associated Python Scripts"
+version: "1.0.0"
+date-released: "2024-09-04"
 authors:
   - family-names: Lima
     given-names: Nathan M.
     orcid: "https://orcid.org/0009-0004-6252-4368"
     affiliation: "National Institute of Standards and Technology"
-year: 2024
+abstract: "Python scripts for processing RECS and AHS federal housing survey data to produce weighted characteristic distributions for U.S. dwelling prototypes, in support of NIST TN 2329."
 doi: "10.18434/mds2-3488"
 repository-code: "https://github.com/usnistgov/NIST_Collection_of_Dwellings_Update"
 license: NIST-PD
@@ -41,4 +43,3 @@ references:
     number: "NIST TN 2329"
     year: 2025
     doi: "10.6028/NIST.TN.2329"
-    url: "https://doi.org/10.6028/NIST.TN.2329"
