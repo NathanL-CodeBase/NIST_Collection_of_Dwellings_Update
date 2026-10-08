@@ -168,7 +168,7 @@ if dataset == 'recs20':
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 10) & (df["building_units"] <= 19), "#_of_units"] = "3"
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 20) & (df["building_units"] <= 49), "#_of_units"] = "4"
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 50), "#_of_units"] = "5"
-    df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] == 1), "#_of_units"] = "TEST" #This was not expected to be needed, it also does not make since that it is there.
+    df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] == 1), "#_of_units"] = "1" # building_units == 1 in a TYPEHUQ 5 record: grouped with the smallest apartment stratum
 
 elif dataset == 'ahs21':
     print('AHS dataset known problems')
@@ -210,7 +210,7 @@ elif dataset == 'ahs21':
     df.loc[df["YRBUILT"] == 1950, "year_built"] = "2" #1950 = 1950 to 1959
     df.loc[df["YRBUILT"] == 1960, "year_built"] = "2" #1960 = 1960 to 1969
     df.loc[df["YRBUILT"] == 1970, "year_built"] = "3" #1970 = 1970 to 1979
-    df.loc[df["YRBUILT"] == 1980, "year_built"] = "2" #1980 = 1980 to 1989
+    df.loc[df["YRBUILT"] == 1980, "year_built"] = "3" #1980 = 1980 to 1989
     df.loc[df["YRBUILT"] == 1990, "year_built"] = "4" #1990 = 1990 to 1999
     df.loc[df["YRBUILT"] >= 2000, "year_built"] = "5" #2000 = 2000 to 2009 The > catches all values higher up to 2021
     # mobile_home floor_area

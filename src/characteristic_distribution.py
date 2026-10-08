@@ -169,7 +169,7 @@ if dataset == 'recs20':
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 10) & (df["building_units"] <= 19), "#_of_units"] = "3"
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 20) & (df["building_units"] <= 49), "#_of_units"] = "4"
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 50), "#_of_units"] = "5"
-    df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] == 1), "#_of_units"] = "TEST" #This was not expected to be needed, it also does not make since that it is there.
+    df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] == 1), "#_of_units"] = "1" # building_units == 1 in a TYPEHUQ 5 record: grouped with the smallest apartment stratum
 elif dataset == 'ahs21':
     print('AHS dataset known problems')
     df.loc[df["BLD"] == '01', "TypeofHousehold"] = "mobile_home"
@@ -269,7 +269,8 @@ elif dataset == 'ahs21':
     df.loc[df['GARAGE'] == '-9', "garage"] = "1"
     # number of floors
     # true values
-    df["STORIES_temp"] = df['STORIES'].mask(df.FOUNDTYPE == '1',df['STORIES']-1)
+    # A basement is counted as a story by AHS; clamp at 1 so one-story homes with a basement keep a floor count
+    df["STORIES_temp"] = df['STORIES'].mask(df.FOUNDTYPE == '1',(df['STORIES']-1).clip(lower=1))
     df.loc[df['STORIES_temp'] == 1, "#_of_floors"] = "1"
     df.loc[df['STORIES_temp'] == 2, "#_of_floors"] = "2"
     df.loc[df['STORIES_temp'] == 3, "#_of_floors"] = "3"

@@ -126,13 +126,13 @@ if dataset == 'recs15':
     # attached single family floor_area
     # (1)less than 1500sq/sf (2)1500-2500sq/ft (3)greater than 2500sq/ft
     df.loc[(df["TOTSQFT_EN"] <= 1490) & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #Less than 1,490 square feet
-    df.loc[(df["TOTSQFT_EN"] >= 1500) & (df["TOTSQFT_EN"] <= 2490) & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #1,500 to 2,490 square feet
-    df.loc[(df["TOTSQFT_EN"] >= 2500) & (df["TypeofHousehold"] == "attached"), "floor_area"] = "1" #2,500 square feet or more
+    df.loc[(df["TOTSQFT_EN"] >= 1500) & (df["TOTSQFT_EN"] <= 2490) & (df["TypeofHousehold"] == "attached"), "floor_area"] = "2" #1,500 to 2,490 square feet
+    df.loc[(df["TOTSQFT_EN"] >= 2500) & (df["TypeofHousehold"] == "attached"), "floor_area"] = "3" #2,500 square feet or more
     # detached single family floor_area
     # (1)less than 1500sq/sf (2)1500-2500sq/ft (3)greater than 2500sq/ft
     df.loc[(df["TOTSQFT_EN"] <= 1490) & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #Less than 1,490 square feet
-    df.loc[(df["TOTSQFT_EN"] >= 1500) & (df["TOTSQFT_EN"] <= 2490) & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #1,500 to 2,490 square feet
-    df.loc[(df["TOTSQFT_EN"] >= 2500) & (df["TypeofHousehold"] == "detached"), "floor_area"] = "1" #2,500 square feet or more
+    df.loc[(df["TOTSQFT_EN"] >= 1500) & (df["TOTSQFT_EN"] <= 2490) & (df["TypeofHousehold"] == "detached"), "floor_area"] = "2" #1,500 to 2,490 square feet
+    df.loc[(df["TOTSQFT_EN"] >= 2500) & (df["TypeofHousehold"] == "detached"), "floor_area"] = "3" #2,500 square feet or more
     # apartment floor_area
     # (1)less than 1000sq/sf (2)greater than 1000sq/ft
     df.loc[(df["TOTSQFT_EN"] <= 990) & (df["TypeofHousehold"] == "apartment"), "floor_area"] = "1" #Less than 990 square feet
@@ -348,6 +348,7 @@ elif dataset == 'ahs19':
     df.loc[df['BATHROOMS'] == '04', "#_of_bathrooms"] = "2"
     df.loc[df['BATHROOMS'] == '05', "#_of_bathrooms"] = "3"
     df.loc[df['BATHROOMS'] == '06', "#_of_bathrooms"] = "4" # more then three
+    df.loc[df['BATHROOMS'] == '07', "#_of_bathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '08', "#_of_bathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '09', "#_of_bathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '11', "#_of_bathrooms"] = "0"
@@ -359,6 +360,7 @@ elif dataset == 'ahs19':
     df.loc[df['BATHROOMS'] == '03', "#_of_halfbathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '05', "#_of_halfbathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '06', "#_of_halfbathrooms"] = "0"
+    df.loc[df['BATHROOMS'] == '07', "#_of_halfbathrooms"] = "1"
     df.loc[df['BATHROOMS'] == '08', "#_of_halfbathrooms"] = "1"
     df.loc[df['BATHROOMS'] == '09', "#_of_halfbathrooms"] = "1"
     df.loc[df['BATHROOMS'] == '11', "#_of_halfbathrooms"] = "0"

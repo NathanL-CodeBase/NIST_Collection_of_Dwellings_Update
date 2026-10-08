@@ -349,6 +349,7 @@ elif dataset == 'ahs19':
     df.loc[df['BATHROOMS'] == '04', "#_of_bathrooms"] = "2"
     df.loc[df['BATHROOMS'] == '05', "#_of_bathrooms"] = "3"
     df.loc[df['BATHROOMS'] == '06', "#_of_bathrooms"] = "4" # more then three
+    df.loc[df['BATHROOMS'] == '07', "#_of_bathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '08', "#_of_bathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '09', "#_of_bathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '11', "#_of_bathrooms"] = "0"
@@ -360,6 +361,7 @@ elif dataset == 'ahs19':
     df.loc[df['BATHROOMS'] == '03', "#_of_halfbathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '05', "#_of_halfbathrooms"] = "0"
     df.loc[df['BATHROOMS'] == '06', "#_of_halfbathrooms"] = "0"
+    df.loc[df['BATHROOMS'] == '07', "#_of_halfbathrooms"] = "1"
     df.loc[df['BATHROOMS'] == '08', "#_of_halfbathrooms"] = "1"
     df.loc[df['BATHROOMS'] == '09', "#_of_halfbathrooms"] = "1"
     df.loc[df['BATHROOMS'] == '11', "#_of_halfbathrooms"] = "0"

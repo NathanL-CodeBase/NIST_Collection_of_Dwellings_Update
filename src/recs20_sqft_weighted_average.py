@@ -166,7 +166,7 @@ if dataset == 'recs20':
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 10) & (df["building_units"] <= 19), "#_of_units"] = "3"
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 20) & (df["building_units"] <= 49), "#_of_units"] = "4"
     df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] >= 50), "#_of_units"] = "5"
-    df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] == 1), "#_of_units"] = "TEST" #This was not expected to be needed, it also does not make since that it is there.
+    df.loc[(df["TYPEHUQ"] == 5) & (df["building_units"] == 1), "#_of_units"] = "1" # building_units == 1 in a TYPEHUQ 5 record: grouped with the smallest apartment stratum
 
 elif dataset == 'ahs21':
     print('AHS dataset known problems')
@@ -386,8 +386,8 @@ def w_avg(df, values, weights):
 #%%
 ap1 = apartment[(apartment['conditioned_sqft']<1000) & (apartment['#_of_units']=="1")]
 ap2 = apartment[(apartment['conditioned_sqft']>=1000) & (apartment['#_of_units']=="1")]
-ap3 = apartment[(apartment['conditioned_sqft']<1000) & (apartment['#_of_units']>="2")]
-ap4 = apartment[(apartment['conditioned_sqft']>=1000) & (apartment['#_of_units']>="2")]
+ap3 = apartment[(apartment['conditioned_sqft']<1000) & (apartment['#_of_units'].isin(["2","3","4","5"]))]
+ap4 = apartment[(apartment['conditioned_sqft']>=1000) & (apartment['#_of_units'].isin(["2","3","4","5"]))]
 at1 = attached[(attached['conditioned_sqft']<1600)]
 at2 = attached[(attached['conditioned_sqft']>=1600) & (attached['conditioned_sqft']<=2399)]
 at3 = attached[(attached['conditioned_sqft']>=2400)]
